@@ -1,0 +1,10 @@
+
+{% for group, items in data.items() %}
+
+    <ul>
+        {% for item in items %}
+        <li><a href="{{ item.href }}">{{ item.text }}</a></li>
+        {% endfor %}
+    </ul>
+
+{% endfor %}

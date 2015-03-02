@@ -1,0 +1,14 @@
+Группа один:
+  - text: Ссылка 1
+  - link: aaa
+
+Группа два:
+  - text: Ссылка 3
+    image: 2.jpg
+    href: http://www.ru
+  - text: Ссылка 3
+    image: https://www.google.ru/logos/2012/birthday12-thp.png
+    href: http://www.ru
+  - text: Ссылка 5
+    image: 3.jpg
+    href: http://www.ru

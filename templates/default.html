@@ -1,0 +1,13 @@
+
+{% for group, items in data.items() %}
+    {% if items|length > 0 %}
+        <h1>{{ group }}</h1>
+
+        <ul>
+            {% for item in items %}
+            <li><a href="{{ item.href }}" class="sprite s{{ item.n }}">{{ item.text }}</a></li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+{% endfor %}
