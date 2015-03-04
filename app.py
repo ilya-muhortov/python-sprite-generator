@@ -66,7 +66,7 @@ def application(ctx, file_data, html_template, output_html_dir, output_css_dir, 
                     except Exception as e:
                         del items[i]
                         if debug:
-                            raise Exception(e)
+                            click.echo(e.message)
 
                 else:
                     del items[i]
