@@ -31,7 +31,7 @@ class DefaultConfig(object):
 
     DEFAULT_TEMPLATE = 'default.html'
 
-    IMAGE_THUMB_SIZE = (100, 80)
+    IMAGE_THUMB_SIZE = '100x80'
     IMAGE_QUALITY = 85
 
     SUCCESS_RATE = 100

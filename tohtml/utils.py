@@ -41,8 +41,8 @@ class ImageSizeParamType(click.ParamType):
         value = super(ImageSizeParamType, self).convert(value, param, ctx)
         try:
             size = value.split('x')
-            return size[0], size[1]
-        except IndexError:
+            return int(size[0]), int(size[1])
+        except (IndexError, ValueError) as e:
             self.fail('Image size format %s error' % value, param, ctx)
 
 ImageSize = ImageSizeParamType()
@@ -69,6 +69,7 @@ def process_image(image_path, filename, thumb_size, quality, local_dir, temp_dir
 
     saved_image_path = os.path.join(temp_dir, '%s%s' % (filename, ext))
     width, height = i.size
+
     if width > thumb_size[0] or height > thumb_size[1]:
         i = ImageOps.fit(i, thumb_size, Image.ANTIALIAS)
         i.save(saved_image_path, quality=quality)
