@@ -1,12 +1,12 @@
 python-tohtml
 ======
 Использование  
-python app.py data/example/data.yml  
-        --success_rate=80  
-        --output_html_dir=data/rendered  
-        --output_css_dir=data/rendered/css/  
-        --image_thumb_size=200x100  
-        --output_sprite_dir=data/rendered/image
+python app.py data/example/data.yml \
+        --success_rate=80 \
+        --output_html_dir=data/rendered \
+        --output_css_dir=data/rendered/css/ \
+        --image_thumb_size=200x100 \
+        --output_sprite_dir=data/rendered/image \
         --sprite_url=../images/  
   
 Параметры:  

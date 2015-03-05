@@ -48,21 +48,38 @@ class ImageSizeParamType(click.ParamType):
 ImageSize = ImageSizeParamType()
 
 
+class RealPathParamType(click.Path):
+
+    def __init__(self, *args, **kwargs):
+        self.makedirs = kwargs.pop('makedirs', True)
+
+        super(RealPathParamType, self).__init__(*args, **kwargs)
+
+    def convert(self, value, param, ctx):
+        rv = value
+        if self.resolve_path:
+            rv = os.path.realpath(rv)
+
+        if not os.path.isdir(rv) and self.makedirs:
+            os.makedirs(rv)
+
+        return super(RealPathParamType, self).convert(value, param, ctx)
+
+RealPath = RealPathParamType
+
+
 def process_image(image_path, filename, thumb_size, quality, local_dir, temp_dir):
     is_local = True
 
     if re.match(r'^https?://', image_path):
         is_local = False
         ext = os.path.splitext(image_path.split('/')[-1])[1]
-        r = requests.get(image_path)
+        r = requests.get(image_path, timeout=10)
         i = Image.open(StringIO(r.content))
 
     else:
         if not image_path.startswith('/'):
             image_path = os.path.join(local_dir, image_path)
-
-        if not os.path.isfile(image_path):
-            raise Exception('File %s does not exist' % image_path)
 
         ext = os.path.splitext(image_path)[1]
         i = Image.open(image_path)

@@ -1,13 +1,14 @@
 
 import os
 import click
+import datetime
 
 from cerberus import Validator
 from spriter import Sprite
 from jinja2 import Environment, FileSystemLoader, TemplateNotFound
 
 from tohtml.config import Config, DefaultConfig
-from tohtml.utils import YAMLFile, ImageSize, process_image
+from tohtml.utils import YAMLFile, ImageSize, process_image, RealPath
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -17,26 +18,28 @@ config.update({
     'BASE_DIR': BASE_DIR,
     'IMAGE_LOCAL_DIR': os.path.join(BASE_DIR, 'data/images_default'),
     'IMAGE_TEMP_DIR': os.path.join(BASE_DIR, 'data/images_temp'),
+    'TEMPLATES_DIR': os.path.join(BASE_DIR, 'templates')
 })
 
 
 @click.command()
 @click.argument('file_data', type=YAMLFile)
 @click.option('--html_template', default=config.DEFAULT_TEMPLATE, required=True, help='HTML template')
-@click.option('--output_html_dir', type=click.Path(resolve_path=True), required=True)
-@click.option('--output_css_dir', type=click.Path(resolve_path=True), required=True)
-@click.option('--output_sprite_dir', type=click.Path(resolve_path=True), required=True)
+@click.option('--output_html_dir', type=click.Path(resolve_path=True, exists=True), required=True)
+@click.option('--output_css_dir', type=click.Path(resolve_path=True, exists=True), required=True)
+@click.option('--output_sprite_dir', type=click.Path(resolve_path=True, exists=True), required=True)
 @click.option('--sprite_url', default=config.SPRITE_URL, required=True)
 @click.option('--image_quality', default=config.IMAGE_QUALITY, required=True, help='Image quality')
 @click.option('--image_thumb_size', default=config.IMAGE_THUMB_SIZE, type=ImageSize, required=True)
 @click.option('--image_local_dir', default=config.IMAGE_LOCAL_DIR, type=click.Path(exists=True), required=True)
+@click.option('--image_temp_dir', default=config.IMAGE_TEMP_DIR, type=RealPath(resolve_path=True), required=True)
 @click.option('--success_rate', type=click.IntRange(0, 100), default=config.SUCCESS_RATE, required=True)
 @click.option('--debug/--no-debug', default=False)
 @click.pass_context
 def application(ctx, file_data, html_template, output_html_dir, output_css_dir, output_sprite_dir, sprite_url,
-                image_quality, image_thumb_size, image_local_dir, success_rate, debug):
+                image_quality, image_thumb_size, image_local_dir, image_temp_dir, success_rate, debug):
 
-    jinja_env = Environment(loader=FileSystemLoader(os.path.join(BASE_DIR, 'templates')))
+    jinja_env = Environment(loader=FileSystemLoader(config.TEMPLATES_DIR))
     try:
         template = jinja_env.get_template(html_template)
     except TemplateNotFound as e:
@@ -57,7 +60,7 @@ def application(ctx, file_data, html_template, output_html_dir, output_css_dir, 
                 if v.validate(item):
                     try:
                         thumb_image = process_image(item['image'], str(n), image_thumb_size,
-                                                    image_quality, image_local_dir, config.IMAGE_TEMP_DIR)
+                                                    image_quality, image_local_dir, image_temp_dir)
                         item['thumb'] = thumb_image
                         item['n'] = n
                         sprite_images.append(thumb_image)
@@ -65,8 +68,7 @@ def application(ctx, file_data, html_template, output_html_dir, output_css_dir, 
 
                     except Exception as e:
                         del items[i]
-                        if debug:
-                            click.echo(e.message)
+                        click.echo('Link: %s\nImage: %s\nError: %s\n' % (item['text'], item['image'], e))
 
                 else:
                     del items[i]
@@ -84,7 +86,8 @@ def application(ctx, file_data, html_template, output_html_dir, output_css_dir, 
 
         f = open(os.path.join(output_html_dir, 'rendered.html'), 'w')
         html = template.render({
-            'data': file_data
+            'data': file_data,
+            'date': datetime.datetime.now()
         })
         f.write(html.encode('utf-8'))
         f.close()
@@ -92,6 +95,7 @@ def application(ctx, file_data, html_template, output_html_dir, output_css_dir, 
         for image in sprite_images:
             os.remove(image)
 
+        click.echo('Success. Current rate is %d%% (%d/%d).' % (current_rate, total, success))
     else:
         click.echo('Current rate is %d%% (%d/%d). Need %s%%.' % (current_rate, total, success, success_rate))
 
