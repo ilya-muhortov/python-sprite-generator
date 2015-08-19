@@ -9,6 +9,7 @@ from PIL import Image, ImageOps
 from StringIO import StringIO
 from jinja2 import Environment, FileSystemLoader, TemplateNotFound
 import collections
+from spriter import Sprite
 
 
 _mapping_tag = yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG
@@ -109,3 +110,25 @@ def process_image(image_path, filename, thumb_size, quality, local_dir, temp_dir
         i.save(saved_image_path, quality=quality)
 
     return saved_image_path
+
+
+class CustomSprite(Sprite):
+
+    def __init__(self, *args, **kwargs):
+        self.overwrite_css = kwargs.pop('overwrite_css', False)
+        super(CustomSprite, self).__init__(*args, **kwargs)
+
+    def do_write_css(self, is_base64=False):
+        """Write css's file"""
+        if not os.path.exists(self.css_path):
+            os.makedirs(self.css_path)
+
+        path = os.path.join(self.css_path, self.css_name)
+        mode = 'w' if self.overwrite_css is True else 'a'
+        with open(path, mode) as css_f:
+            if is_base64:
+                css = self.get_css_base64()
+            else:
+                css = self.get_css()
+            css_f.write(css)
+        return path

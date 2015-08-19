@@ -4,11 +4,10 @@ import click
 import datetime
 
 from cerberus import Validator
-from spriter import Sprite
 from jinja2 import Environment, FileSystemLoader, TemplateNotFound
 
 from tohtml.config import Config, DefaultConfig
-from tohtml.utils import YAMLFile, ImageSize, process_image, RealPath
+from tohtml.utils import YAMLFile, ImageSize, process_image, RealPath, CustomSprite
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -51,7 +50,9 @@ def application(ctx, file_data, html_template, output_html_dir, output_css_dir, 
     sprite_images = []
 
     n = 0
+    sprite_groups = []
     for group, items in file_data.items():
+        sprite_images = []
         if isinstance(items, (list, tuple)):
             total += len(items)
             i = 0
@@ -76,13 +77,22 @@ def application(ctx, file_data, html_template, output_html_dir, output_css_dir, 
                 n += 1
 
             success += len(items)
+        sprite_groups.append(sprite_images)
 
     current_rate = success * 100 / total
 
     if current_rate >= success_rate:
-        sprite = Sprite(sprite_images, sprite_path=output_sprite_dir, css_path=output_css_dir,
-                        sprite_url=sprite_url, class_name=config.SPRITE_CLASS_NAME)
-        sprite.gen_sprite()
+        for i, sprite_group in enumerate(sprite_groups):
+            sprite = CustomSprite(
+                sprite_group,
+                sprite_name='sprite-%d.png' % i,
+                sprite_path=output_sprite_dir,
+                css_path=output_css_dir,
+                sprite_url=sprite_url,
+                class_name='%s-%d' % (config.SPRITE_CLASS_NAME, i),
+                overwrite_css=not bool(i)
+            )
+            sprite.gen_sprite()
 
         f = open(os.path.join(output_html_dir, 'rendered.html'), 'w')
         html = template.render({

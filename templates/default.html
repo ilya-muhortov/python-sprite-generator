@@ -1,12 +1,14 @@
 <!— generated {{ date }} -->
 
 {% for group, items in data.items() %}
+    {% set group_index = loop.index0 %}
+
     {% if items|length > 0 %}
         <h1>{{ group }}</h1>
 
         <ul>
             {% for item in items %}
-            <li><a href="{{ item.href }}" class="sprite s{{ item.n }}">{{ item.text }}</a></li>
+            <li><a href="{{ item.href }}" class="sprite-{{ group_index }} s{{ item.n }}">{{ item.text }}</a></li>
             {% endfor %}
         </ul>
     {% endif %}
