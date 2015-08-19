@@ -47,7 +47,6 @@ def application(ctx, file_data, html_template, output_html_dir, output_css_dir, 
 
     v = Validator(config.SCHEMA)
     total, success = 0, 0
-    sprite_images = []
 
     n = 0
     sprite_groups = []
